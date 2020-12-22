@@ -41,21 +41,157 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var body_parser_1 = __importDefault(require("body-parser"));
+// import excelExport from "excel-export";
+var query_1 = __importDefault(require("../models/query"));
 var router = express_1.default.Router();
 var urlencodedParser = body_parser_1.default.urlencoded({ extended: false });
-router.get("/getEmployee", function (req, res) {
-    res.json({
-        flat: 1,
-        msg: "No DB",
-    });
-});
-router.post("/createEmployee", urlencodedParser, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        res.json({
-            flat: 1,
-            msg: "No DB",
-        });
-        return [2 /*return*/];
+var queryAllSQL = "SELECT employee.*, level.level, department.department\n    FROM employee, level, department\n    WHERE\n        employee.levelId = level.id AND\n        employee.departmentId = department.id";
+router.get("/getEmployee", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, _b, name, departmentId, conditions, sql, result, e_1;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _a = req.query, _b = _a.name, name = _b === void 0 ? "" : _b, departmentId = _a.departmentId;
+                conditions = "AND employee.name LIKE '%" + name + "%'";
+                if (departmentId) {
+                    conditions = conditions + (" AND employee.departmentId=" + departmentId);
+                }
+                sql = queryAllSQL + " " + conditions + " ORDER BY employee.id DESC";
+                _c.label = 1;
+            case 1:
+                _c.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, query_1.default(sql)];
+            case 2:
+                result = _c.sent();
+                result.forEach(function (i) {
+                    i.key = i.id;
+                });
+                res.json({
+                    flag: 0,
+                    data: result,
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                e_1 = _c.sent();
+                res.json({
+                    flag: 1,
+                    msg: e_1.toString(),
+                });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
     });
 }); });
+router.post("/createEmployee", urlencodedParser, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, name, departmentId, hiredate, levelId, sql, result, e_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, name = _a.name, departmentId = _a.departmentId, hiredate = _a.hiredate, levelId = _a.levelId;
+                sql = "INSERT INTO employee (name, departmentId, hiredate, levelId)\n        VALUES ('" + name + "', " + departmentId + ", '" + hiredate + "', " + levelId + ")";
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, query_1.default(sql)];
+            case 2:
+                result = _b.sent();
+                res.json({
+                    flag: 0,
+                    data: {
+                        key: result.insertId,
+                        id: result.insertId,
+                    },
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                e_2 = _b.sent();
+                res.json({
+                    flag: 1,
+                    msg: e_2.toString(),
+                });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.post("/deleteEmployee", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var id, sql, result, e_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                id = req.body.id;
+                sql = "DELETE FROM employee WHERE id=" + id;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, query_1.default(sql)];
+            case 2:
+                result = _a.sent();
+                res.json({
+                    flag: 0,
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                e_3 = _a.sent();
+                res.json({
+                    flag: 1,
+                    msg: e_3.toString(),
+                });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.post("/updateEmployee", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, id, name, departmentId, hiredate, levelId, sql, result, e_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, id = _a.id, name = _a.name, departmentId = _a.departmentId, hiredate = _a.hiredate, levelId = _a.levelId;
+                sql = "UPDATE employee\n        SET\n            name='" + name + "',\n            departmentId=" + departmentId + ",\n            hiredate='" + hiredate + "',\n            levelId=" + levelId + "\n        WHERE\n            id=" + id;
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, query_1.default(sql)];
+            case 2:
+                result = _b.sent();
+                res.json({
+                    flag: 0,
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                e_4 = _b.sent();
+                res.json({
+                    flag: 1,
+                    msg: e_4.toString(),
+                });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+// let conf: excelExport.Config = {
+//   cols: [
+//     { caption: "员工ID", type: "number" },
+//     { caption: "姓名", type: "string" },
+//     { caption: "部门", type: "string" },
+//     { caption: "入职时间", type: "string" },
+//     { caption: "职级", type: "string" },
+//   ],
+//   rows: [],
+// };
+// router.get("/downloadEmployee", async (req, res) => {
+//   try {
+//     let result = await query(queryAllSQL);
+//     conf.rows = result.map((i: any) => {
+//       return [i.id, i.name, i.department, i.hiredate, i.level];
+//     });
+//     let excel = excelExport.execute(conf);
+//     res.setHeader("Content-Type", "application/vnd.openxmlformats");
+//     res.setHeader("Content-Disposition", "attachment; filename=Employee.xlsx");
+//     res.end(excel, "binary");
+//   } catch (e) {
+//     res.send(e.toString());
+//   }
+// });
 exports.default = router;
